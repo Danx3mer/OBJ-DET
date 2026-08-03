@@ -6,14 +6,12 @@ package com.stuypulse.robot;
 
 import com.stuypulse.robot.commands.auton.AutonomousRoutines;
 import com.stuypulse.robot.constants.Ports;
+import com.stuypulse.robot.subsystems.vision.PhotonVision;
 
 import org.wpilib.command3.Command;
 import org.wpilib.command3.button.CommandNiDsXboxController;
 import org.wpilib.smartdashboard.SendableChooser;
 import org.wpilib.smartdashboard.SmartDashboard;
-
-import dev.doglog.DogLog;
-import dev.doglog.DogLogOptions;
 
 public class RobotContainer {
 
@@ -24,6 +22,8 @@ public class RobotContainer {
             new CommandNiDsXboxController(Ports.Gamepad.OPERATOR);
 
     // Subsystem
+
+    public final PhotonVision vision = PhotonVision.getInstance();
 
     // Autons
     private static SendableChooser<Command> autonChooser = new SendableChooser<>();
@@ -42,8 +42,6 @@ public class RobotContainer {
     /***************/
 
     private void configureLogging() {
-        DogLog.setOptions(
-                new DogLogOptions().withCaptureDs(true).withNtTunables(true).withLogExtras(true));
     }
 
     /****************/
