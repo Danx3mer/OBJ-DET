@@ -91,29 +91,28 @@ public class PhotonVision extends Mechanism {
 
     private Optional<Pose3d> getFuelFieldPose(
         Pose3d currentRobotPose, Transform3d robotToCamera, PhotonTrackedTarget target) {
-        // PhotonVision yaw is positive-right; WPILib +Y is left, so negate.
-        final double yawRad = Units.degreesToRadians(-target.getYaw());
+
+        final double yawRad = Units.degreesToRadians(-target.getYaw()); // negative
         final double pitchRad = Units.degreesToRadians(target.getPitch());
 
         SmartDashboard.putNumber("Vision/Fuel Yaw", Units.radiansToDegrees(yawRad));
         SmartDashboard.putNumber("Vision/Fuel Pitch", Units.radiansToDegrees(pitchRad));
 
-        // PhotonUtils expects cameraPitchRadians positive-up;
-        // Rotation3d pitch (getY()) is positive nose-down, so negate.
-        final double cameraPitchRad = -robotToCamera.getRotation().getY();
+        final double cameraPitchRad = -robotToCamera.getRotation().getY(); // negative
 
-        final double range = PhotonUtils.calculateDistanceToTargetMeters(
+        final double distance = PhotonUtils.calculateDistanceToTargetMeters(
             robotToCamera.getZ(),
             FUEL_RADIUS,
             cameraPitchRad,
             pitchRad
         );
 
-        if (range <= 0 || Double.isNaN(range)) {
+        if (distance <= 0 || Double.isNaN(distance)) {
+            SmartDashboard.putNumber("Vision/target_" + target.getDetectedObjectClassID() + "distance_m", distance);
             return Optional.empty();
         }
 
-        final Translation3d camToPiece = new Translation3d(PhotonUtils.estimateCameraToTargetTranslation(range, new Rotation2d(yawRad)));
+        final Translation3d camToPiece = new Translation3d(PhotonUtils.estimateCameraToTargetTranslation(distance, new Rotation2d(yawRad)));
 
         final Pose3d fieldToCamera = currentRobotPose.transformBy(robotToCamera);
         final Pose3d fieldToPiece = fieldToCamera.transformBy(
@@ -150,23 +149,6 @@ public class PhotonVision extends Mechanism {
                 if (fuelPose.isPresent()) {
                     // DogLog.log("Vision/" + currentCamera.getName() + "_FuelPose", fuelPose.get());
                     fuelPoses.add(fuelPose.get());
-                }
-
-                Optional<EstimatedRobotPose> estimatedPose = currentEstimator.estimateCoprocMultiTagPose(result);
-                if (estimatedPose.isEmpty()) {
-                    estimatedPose = currentEstimator.estimateLowestAmbiguityPose(result);
-                }
-
-                if (estimatedPose.isEmpty()) {
-                    continue;
-                }
-
-                final Pose2d finalPose = estimatedPose.get().estimatedPose.toPose2d();
-
-                if (Robot.isSimulation()) {
-                    visionSim.getDebugField()
-                        .getObject("VisionEstimation" + currentCamera.getName())
-                        .setPose(finalPose);
                 }
             }
         }
