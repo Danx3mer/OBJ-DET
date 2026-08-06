@@ -1,31 +1,55 @@
 /************************ PROJECT PHIL ************************/
-/* Copyright (c) 2024 StuyPulse Robotics. All rights reserved.*/
+/* Copyright (c) 2026 StuyPulse Robotics. All rights reserved.*/
 /* This work is licensed under the terms of the MIT license.  */
 /**************************************************************/
-
 package com.stuypulse.robot;
 
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import org.wpilib.command3.Command;
+import org.wpilib.command3.Scheduler;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.driverstation.MatchState;
+import org.wpilib.framework.TimedRobot;
 
+import java.util.Optional;
+
+/**
+ * Robot Class
+ *
+ * This is the main class for robot code, instantiated in {@link com.stuypulse.robot.Main} It
+ * extends TimedRobot, meaning that the methods in this class are called automatically during
+ * specific states of the robot.
+ */
 public class Robot extends TimedRobot {
+    /**
+     * Checks the alliance the robot is on
+     *
+     * @return true if the robot is on the blue alliance, false if the robot is on the red alliance,
+     *     and false if alliance cannot be determined.
+     */
+    public static boolean isBlue() {
+        final Optional<Alliance> alliance = MatchState.getAlliance();
+        if (alliance.isPresent()) {
+            return alliance.get() == Alliance.BLUE;
+        }
+        return false;
+    }
 
-    private RobotContainer robot;
+    private final RobotContainer robot;
+    private final Scheduler defaultScheduler;
     private Command auto;
+
+    public Robot() {
+        robot = new RobotContainer();
+        defaultScheduler = Scheduler.getDefault();
+    }
 
     /*************************/
     /*** ROBOT SCHEDULEING ***/
     /*************************/
 
     @Override
-    public void robotInit() {
-        robot = new RobotContainer();
-    }
-
-    @Override
     public void robotPeriodic() {
-        CommandScheduler.getInstance().run();
+        defaultScheduler.run();
     }
 
     /*********************/
@@ -40,14 +64,14 @@ public class Robot extends TimedRobot {
 
     /***********************/
     /*** AUTONOMOUS MODE ***/
-    /***********************/  
+    /***********************/
 
     @Override
     public void autonomousInit() {
         auto = robot.getAutonomousCommand();
 
         if (auto != null) {
-            auto.schedule();
+            defaultScheduler.schedule(auto);
         }
     }
 
@@ -64,7 +88,7 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         if (auto != null) {
-            auto.cancel();
+            defaultScheduler.cancel(auto);
         }
     }
 
@@ -74,18 +98,18 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopExit() {}
 
-    /*****************/
-    /*** TEST MODE ***/
-    /*****************/
+    /*************************/
+    /*** UTILITY/TEST MODE ***/
+    /*************************/
 
     @Override
-    public void testInit() {
-        CommandScheduler.getInstance().cancelAll();
+    public void utilityInit() {
+        defaultScheduler.cancelAll();
     }
 
     @Override
-    public void testPeriodic() {}
+    public void utilityPeriodic() {}
 
     @Override
-    public void testExit() {}
+    public void utilityExit() {}
 }

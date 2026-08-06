@@ -1,15 +1,19 @@
 /************************ PROJECT PHIL ************************/
-/* Copyright (c) 2024 StuyPulse Robotics. All rights reserved.*/
+/* Copyright (c) 2026 StuyPulse Robotics. All rights reserved.*/
 /* This work is licensed under the terms of the MIT license.  */
 /**************************************************************/
-
 package com.stuypulse.robot.constants;
 
+import org.wpilib.networktables.BooleanSubscriber;
 
-/*-
+/**
  * File containing tunable settings for every subsystem on the robot.
  *
- * We use DogLog's tunables in order to have tunable
- * values that we can edit on Shuffleboard.
+ * We use DogLog's tunables in order to have tunable values that we can edit from external
+ * dashboards.
  */
-public interface Settings {}
+public interface Settings {
+    public static interface EnabledSubsystems {
+        boolean VISION = true;
+    }
+}

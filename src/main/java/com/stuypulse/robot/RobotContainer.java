@@ -1,25 +1,29 @@
 /************************ PROJECT PHIL ************************/
-/* Copyright (c) 2024 StuyPulse Robotics. All rights reserved.*/
+/* Copyright (c) 2026 StuyPulse Robotics. All rights reserved.*/
 /* This work is licensed under the terms of the MIT license.  */
 /**************************************************************/
-
 package com.stuypulse.robot;
 
-import com.stuypulse.robot.commands.auton.DoNothingAuton;
+import com.stuypulse.robot.commands.auton.AutonomousRoutines;
 import com.stuypulse.robot.constants.Ports;
+import com.stuypulse.robot.subsystems.vision.PhotonVision;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import org.wpilib.command3.Command;
+import org.wpilib.command3.button.CommandNiDsXboxController;
+import org.wpilib.smartdashboard.SendableChooser;
+import org.wpilib.smartdashboard.SmartDashboard;
 
 public class RobotContainer {
 
     // Gamepads
-    public final CommandXboxController driver = new CommandXboxController(Ports.Gamepad.DRIVER);
-    public final CommandXboxController operator = new CommandXboxController(Ports.Gamepad.OPERATOR);
-    
+    public final CommandNiDsXboxController driver =
+            new CommandNiDsXboxController(Ports.Gamepad.DRIVER);
+    public final CommandNiDsXboxController operator =
+            new CommandNiDsXboxController(Ports.Gamepad.OPERATOR);
+
     // Subsystem
+
+    public final PhotonVision vision = PhotonVision.getInstance();
 
     // Autons
     private static SendableChooser<Command> autonChooser = new SendableChooser<>();
@@ -27,9 +31,17 @@ public class RobotContainer {
     // Robot container
 
     public RobotContainer() {
+        configureLogging();
         configureDefaultCommands();
         configureButtonBindings();
         configureAutons();
+    }
+
+    /***************/
+    /*** LOGGING ***/
+    /***************/
+
+    private void configureLogging() {
     }
 
     /****************/
@@ -49,11 +61,16 @@ public class RobotContainer {
     /**************/
 
     public void configureAutons() {
-        autonChooser.setDefaultOption("Do Nothing", new DoNothingAuton());
+        autonChooser.setDefaultOption("Do Nothing", AutonomousRoutines.doNothingAuton());
 
         SmartDashboard.putData("Autonomous", autonChooser);
     }
 
+    /**
+     * Use this to pass the autonomous command to the main {@link Robot} class.
+     *
+     * @return The command to run in autonomous
+     */
     public Command getAutonomousCommand() {
         return autonChooser.getSelected();
     }
