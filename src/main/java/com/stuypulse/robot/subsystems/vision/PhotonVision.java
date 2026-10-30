@@ -123,7 +123,6 @@ public class PhotonVision extends Mechanism {
     }
 
     private volatile List<Pose3d> fuelPoses = new ArrayList<>();
-    private double lastGoodTimestamp = -1;
 
     public void periodic() {
         if (!Settings.EnabledSubsystems.VISION) {
@@ -140,33 +139,29 @@ public class PhotonVision extends Mechanism {
             final PhotonCamera currentCamera = realCameras[i];
 
             final List<PhotonPipelineResult> results = currentCamera.getAllUnreadResults();
-            // DogLog.log("Vision/" + currentCamera.getName() + "_numResults/", results.size());
             for (PhotonPipelineResult result : results) {
                 if (!result.hasTargets()) {
                     continue;
                 }
 
-                // if(result.getBestTarget() == null) continue;
-
-                // Reject anything that isn't a fuel
-                if(result.getBestTarget().getDetectedObjectClassID() != 0) continue;
-
-                // Reject anything that is old
-                // if(result.getTimestampSeconds() == lastGoodTimestamp) continue;
-                // lastGoodTimestamp = result.getTimestampSeconds();
-
-                if(!foundNewResult) {
-                    fuelPoses.clear();
-                    foundNewResult = true;
-                }
+                if(result.getBestTarget() == null) continue;
 
                 SmartDashboard.putNumber("POSE/timestamp", result.getTimestampSeconds());
 
+                for(PhotonTrackedTarget target : result.targets) {
+                    if(target.getDetectedObjectClassID() != Settings.Vision.FUEL_CLASS_ID) {
+                        continue;
+                    }
 
-                var fuelPose = this.getFuelFieldPose(DEFAULT_POSE, cameraTransforms[i], result.getBestTarget());
-                if (fuelPose.isPresent()) {
-                    // DogLog.log("Vision/" + currentCamera.getName() + "_FuelPose", fuelPose.get());
-                    fuelPoses.add(fuelPose.get());
+                    if(!foundNewResult) {
+                        fuelPoses.clear();
+                        foundNewResult = true;
+                    }
+
+                    var fuelPose = this.getFuelFieldPose(DEFAULT_POSE, cameraTransforms[i], target);
+                    if (fuelPose.isPresent()) {
+                        fuelPoses.add(fuelPose.get());
+                    }
                 }
             }
         }

@@ -13,7 +13,11 @@ import org.wpilib.networktables.BooleanSubscriber;
  * dashboards.
  */
 public interface Settings {
-    public static interface EnabledSubsystems {
+    interface EnabledSubsystems {
         boolean VISION = true;
+    }
+
+    interface Vision {
+        short FUEL_CLASS_ID = 0;
     }
 }
