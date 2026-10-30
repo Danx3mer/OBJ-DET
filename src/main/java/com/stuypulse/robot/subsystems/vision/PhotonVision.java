@@ -107,8 +107,8 @@ public class PhotonVision extends Mechanism {
             pitchRad
         );
 
+        SmartDashboard.putNumber("Vision/target_" + target.getDetectedObjectClassID() + "distance_m", distance);
         if (distance <= 0 || Double.isNaN(distance)) {
-            SmartDashboard.putNumber("Vision/target_" + target.getDetectedObjectClassID() + "distance_m", distance);
             return Optional.empty();
         }
 
@@ -123,12 +123,14 @@ public class PhotonVision extends Mechanism {
     }
 
     private volatile List<Pose3d> fuelPoses = new ArrayList<>();
+    private double lastGoodTimestamp = -1;
 
     public void periodic() {
         if (!Settings.EnabledSubsystems.VISION) {
             return;
         }
 
+        boolean foundNewResult = false;
 
         if (Robot.isSimulation()) {
             visionSim.update(DEFAULT_POSE);
@@ -136,7 +138,6 @@ public class PhotonVision extends Mechanism {
 
         for (int i = 0; i < realCameras.length; i++) {
             final PhotonCamera currentCamera = realCameras[i];
-            final PhotonPoseEstimator currentEstimator = poseEstimators[i];
 
             final List<PhotonPipelineResult> results = currentCamera.getAllUnreadResults();
             // DogLog.log("Vision/" + currentCamera.getName() + "_numResults/", results.size());
@@ -144,6 +145,23 @@ public class PhotonVision extends Mechanism {
                 if (!result.hasTargets()) {
                     continue;
                 }
+
+                // if(result.getBestTarget() == null) continue;
+
+                // Reject anything that isn't a fuel
+                if(result.getBestTarget().getDetectedObjectClassID() != 0) continue;
+
+                // Reject anything that is old
+                // if(result.getTimestampSeconds() == lastGoodTimestamp) continue;
+                // lastGoodTimestamp = result.getTimestampSeconds();
+
+                if(!foundNewResult) {
+                    fuelPoses.clear();
+                    foundNewResult = true;
+                }
+
+                SmartDashboard.putNumber("POSE/timestamp", result.getTimestampSeconds());
+
 
                 var fuelPose = this.getFuelFieldPose(DEFAULT_POSE, cameraTransforms[i], result.getBestTarget());
                 if (fuelPose.isPresent()) {
@@ -153,6 +171,5 @@ public class PhotonVision extends Mechanism {
             }
         }
         fuel.accept(fuelPoses.toArray(Pose3d[]::new));
-        fuelPoses.clear();
     }
 }
